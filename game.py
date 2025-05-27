@@ -1,108 +1,23 @@
 import pygame
 import heapq
-import os
-import sys
 
-# Inicialização do Pygame
+
+from constantes import (
+    BLACK,
+    BLUE,
+    CELL_SIZE,
+    GRAY,
+    GREEN,
+    INFO_PANEL_HEIGHT,
+    RED,
+    SCREEN_HEIGHT,
+    SCREEN_WIDTH,
+    YELLOW,
+)
+from interface_grafica import AssetLoader
+from node import Node
+
 pygame.init()
-
-# Configurações da tela
-CELL_SIZE = 80
-SCREEN_WIDTH = 480
-SCREEN_HEIGHT = 580
-INFO_PANEL_HEIGHT = 100
-
-# Cores para fallback
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-BLUE = (0, 0, 255)
-GRAY = (200, 200, 200)
-GREEN = (0, 255, 0)
-RED = (255, 0, 0)
-YELLOW = (255, 255, 0)
-ORANGE = (255, 165, 0)
-PURPLE = (128, 0, 128)
-SKY_BLUE = (135, 206, 235)
-MAGENTA = (255, 0, 255)  # Para assets faltantes
-
-
-class AssetLoader:
-    def __init__(self):
-        self.assets = {}
-        self.load_assets()
-
-    def load_assets(self):
-        """Carrega todos os assets gráficos"""
-        assets_path = os.path.join(os.path.dirname(__file__), "assets")
-
-        # Cria a pasta assets se não existir
-        if not os.path.exists(assets_path):
-            os.makedirs(assets_path)
-            print(
-                f"Pasta 'assets' criada em {assets_path}. Adicione seus arquivos PNG lá."
-            )
-
-        # Carrega cada asset individualmente
-        self.assets["tux"] = [
-            self.load_image("tux.png", assets_path),
-            self.load_image("tux2.png", assets_path),
-        ]
-        self.assets["barreira"] = self.load_image("barreira.png", assets_path)
-        self.assets["chegada"] = self.load_image("chegada.png", assets_path)
-        self.assets["fruta"] = self.load_image("fruta.png", assets_path)
-        self.assets["ponte"] = self.load_image("ponte.png", assets_path)
-        self.assets["wallpaper"] = self.load_image(
-            "wallpaper.png", assets_path, (SCREEN_WIDTH, SCREEN_HEIGHT)
-        )
-        self.assets["vazio"] = self.load_image("vazio.png", assets_path)
-
-    def load_image(self, filename, assets_path, size=(CELL_SIZE, CELL_SIZE)):
-        """
-        Carrega uma imagem do disco e a redimensiona
-        Retorna uma surface pygame com fallback se o arquivo não existir
-        """
-        try:
-            path = os.path.join(assets_path, filename)
-            if not os.path.exists(path):
-                raise FileNotFoundError(f"Arquivo {filename} não encontrado")
-
-            image = pygame.image.load(path).convert_alpha()
-            return pygame.transform.scale(image, size)
-        except Exception as e:
-            print(f"Erro ao carregar {filename}: {e}")
-            return self.create_fallback_surface(filename, size)
-
-    def create_fallback_surface(self, filename, size):
-        """Cria uma surface de fallback quando um asset não é encontrado"""
-        surface = pygame.Surface(size)
-        surface.fill(MAGENTA)  # Cor destacada para indicar asset faltante
-
-        # Adiciona o nome do arquivo faltante
-        font = pygame.font.SysFont("Arial", 12)
-        text = font.render(filename.split(".")[0], True, BLACK)
-        text_rect = text.get_rect(center=(size[0] // 2, size[1] // 2))
-        surface.blit(text, text_rect)
-
-        return surface
-
-
-class Node:
-    def __init__(self, position, parent=None):
-        self.position = position
-        self.parent = parent
-        self.g = 0  # Custo do caminho do início até este nó
-        self.h = 0  # Heurística (estimativa do custo até o objetivo)
-        self.f = 0  # Custo total (g + h)
-        self.has_fruta = False
-
-    def __eq__(self, other):
-        return self.position == other.position
-
-    def __lt__(self, other):
-        return self.f < other.f
-
-    def __hash__(self):
-        return hash((self.position, self.has_fruta))
 
 
 class TuxGame:
@@ -146,7 +61,7 @@ class TuxGame:
 
     def reset_game(self):
         """Reinicia o estado do jogo para o início"""
-        self.grid = [row.copy() for row in self.original_grid] 
+        self.grid = [row.copy() for row in self.original_grid]
         self.start, self.end = self.find_character_and_exit()
         self.path = []
         self.visited = []
@@ -157,7 +72,7 @@ class TuxGame:
         self.animation_path = []
         self.animation_index = 0
         self.state = "searching"  # Estados: "searching", "showing_path", "animating"
-        
+
         # Novos atributos para visualização do processo
         self.open_positions = set()  # Posições na lista aberta
         self.closed_positions = set()  # Posições na lista fechada
@@ -172,7 +87,11 @@ class TuxGame:
         start_node.f = start_node.g + start_node.h
         heapq.heappush(self.open_list, start_node)
         self.open_positions.add(self.start)
-        self.node_costs[self.start] = {'g': start_node.g, 'h': start_node.h, 'f': start_node.f}
+        self.node_costs[self.start] = {
+            "g": start_node.g,
+            "h": start_node.h,
+            "f": start_node.f,
+        }
 
     def find_character_and_exit(self):
         """Localiza as posições inicial (C) e final (S) no grid"""
@@ -207,10 +126,10 @@ class TuxGame:
             # Diminui a velocidade para melhor visualização
             if current_time - self.last_step_time < 1200:  # 1200ms entre passos
                 return True
-                
+
             current_node = heapq.heappop(self.open_list)
             self.current_node = current_node
-            
+
             # Remove da lista aberta e adiciona à fechada
             self.open_positions.discard(current_node.position)
             self.closed_list.add((current_node.position, current_node.has_fruta))
@@ -306,9 +225,9 @@ class TuxGame:
 
             # Armazena os custos para visualização
             self.node_costs[neighbor_pos] = {
-                'g': neighbor_node.g, 
-                'h': neighbor_node.h, 
-                'f': neighbor_node.f
+                "g": neighbor_node.g,
+                "h": neighbor_node.h,
+                "f": neighbor_node.f,
             }
 
             # Adiciona aos vizinhos sendo avaliados
@@ -442,28 +361,31 @@ class TuxGame:
 
         # Visualização do processo de busca A*
         position = (row, col)
-        
+
         # Destaca posições na lista fechada (já avaliadas)
         if position in self.closed_positions and self.state == "searching":
             highlight = pygame.Surface((CELL_SIZE, CELL_SIZE), pygame.SRCALPHA)
             highlight.fill((255, 0, 0, 100))  # Vermelho semi-transparente
             self.screen.blit(highlight, (screen_x, screen_y))
-        
+
         # Destaca posições na lista aberta (candidatas)
         elif position in self.open_positions and self.state == "searching":
             highlight = pygame.Surface((CELL_SIZE, CELL_SIZE), pygame.SRCALPHA)
             highlight.fill((0, 255, 0, 100))  # Verde semi-transparente
             self.screen.blit(highlight, (screen_x, screen_y))
-        
+
         # Destaca vizinhos sendo avaliados no momento
         if position in self.current_neighbors and self.state == "searching":
             highlight = pygame.Surface((CELL_SIZE, CELL_SIZE), pygame.SRCALPHA)
             highlight.fill((255, 255, 0, 150))  # Amarelo mais opaco
             self.screen.blit(highlight, (screen_x, screen_y))
-        
+
         # Destaca o nó atual sendo processado
-        if (self.current_node and position == self.current_node.position and 
-            self.state == "searching"):
+        if (
+            self.current_node
+            and position == self.current_node.position
+            and self.state == "searching"
+        ):
             highlight = pygame.Surface((CELL_SIZE, CELL_SIZE), pygame.SRCALPHA)
             highlight.fill((0, 0, 255, 150))  # Azul mais opaco
             self.screen.blit(highlight, (screen_x, screen_y))
@@ -488,15 +410,15 @@ class TuxGame:
         if position in self.node_costs and self.state == "searching":
             costs = self.node_costs[position]
             font_small = pygame.font.SysFont("Arial", 10)
-            
+
             # Mostra G (custo do caminho)
             g_text = font_small.render(f"G:{costs['g']}", True, BLACK)
             self.screen.blit(g_text, (screen_x + 2, screen_y + 2))
-            
+
             # Mostra H (heurística)
             h_text = font_small.render(f"H:{costs['h']}", True, BLACK)
             self.screen.blit(h_text, (screen_x + 2, screen_y + 15))
-            
+
             # Mostra F (total)
             f_text = font_small.render(f"F:{costs['f']}", True, BLACK)
             self.screen.blit(f_text, (screen_x + 2, screen_y + 28))
@@ -522,7 +444,9 @@ class TuxGame:
                 current_pos = self.current_node.position
                 status_text += f" | Atual: ({current_pos[0]},{current_pos[1]})"
         elif self.state == "showing_path":
-            status_text = f"Caminho encontrado! Custo total: {len(self.path) - 1} passos"
+            status_text = (
+                f"Caminho encontrado! Custo total: {len(self.path) - 1} passos"
+            )
         elif self.state == "animating":
             status_text = f"Executando caminho... Passo {self.animation_index + 1}/{len(self.animation_path)}"
         else:
@@ -536,16 +460,16 @@ class TuxGame:
         legend_items = [
             (BLUE, "Atual"),
             (GREEN, "Aberto"),
-            (RED, "Fechado"), 
-            (YELLOW, "Vizinhos")
+            (RED, "Fechado"),
+            (YELLOW, "Vizinhos"),
         ]
-        
+
         x_offset = 10
         for color, label in legend_items:
             # Desenha quadrado colorido
             pygame.draw.rect(self.screen, color, (x_offset, legend_y, 15, 15))
             pygame.draw.rect(self.screen, BLACK, (x_offset, legend_y, 15, 15), 1)
-            
+
             # Desenha texto
             label_surface = self.font.render(label, True, BLACK)
             self.screen.blit(label_surface, (x_offset + 20, legend_y))
@@ -582,36 +506,3 @@ class TuxGame:
             clock.tick(60)
 
         pygame.quit()
-
-
-def create_default_map():
-    """Cria um mapa de exemplo mais complexo para demonstrar melhor o algoritmo A*"""
-    return [
-        ["C", "_", "_", "_", "B", "_"],
-        ["_", "B", "_", "_", "_", "_"],
-        ["_", "_", "F", "_", "_", "_"],
-        ["_", "_", "_", "B", "B", "_"],
-        ["_", "_", "_", "A", "_", "_"],
-        ["_", "_", "_", "_", "_", "S"],
-    ]
-
-
-if __name__ == "__main__":
-    # Verifica se a pasta assets existe
-    assets_dir = os.path.join(os.path.dirname(__file__), "assets")
-    if not os.path.exists(assets_dir):
-        os.makedirs(assets_dir)
-        print(f"Diretório 'assets' criado em {assets_dir}")
-        print("Por favor, adicione seus arquivos PNG lá:")
-        print("- tux.png, tux2.png (personagem)")
-        print("- barreira.png (barreiras)")
-        print("- chegada.png (saída)")
-        print("- fruta.png (fruta mágica)")
-        print("- ponte.png (semi-barreiras)")
-        print("- wallpaper.png (fundo)")
-        print("- vazio.png (espaço vazio)")
-
-    # Inicia o jogo
-    game_map = create_default_map()
-    game = TuxGame(game_map)
-    game.run()
