@@ -23,10 +23,27 @@ class AssetLoader:
 
         # Carrega cada asset individualmente
         self.assets["tux"] = [
-            self.load_image("tux.png", assets_path),
-            self.load_image("tux2.png", assets_path),
+            self.load_image("walk-0.png", assets_path),
+            self.load_image("walk_transition-0.png", assets_path),
+            self.load_image("walk-1.png", assets_path),
+            self.load_image("walk_transition-0.png", assets_path),
+            self.load_image("walk-2.png", assets_path),
+            self.load_image("walk_transition-0.png", assets_path),
+            self.load_image("walk-3.png", assets_path),
+            self.load_image("walk_transition-0.png", assets_path),
+            self.load_image("walk-4.png", assets_path),
+            self.load_image("walk_transition-0.png", assets_path),
+            self.load_image("walk-5.png", assets_path),
+            self.load_image("walk_transition-0.png", assets_path),
+            self.load_image("walk-6.png", assets_path),
+            self.load_image("walk_transition-0.png", assets_path),
+            self.load_image("walk-7.png", assets_path),
+            self.load_image("walk_transition-0.png", assets_path),
         ]
-        self.assets["barreira"] = self.load_image("barreira.png", assets_path)
+        self.assets["barreira"] =[ 
+            self.load_image("attacking-0.png", assets_path),
+            self.load_image("charging-0.png", assets_path),
+            ]
         self.assets["chegada"] = self.load_image("chegada.png", assets_path)
         self.assets["fruta"] = self.load_image("fruta.png", assets_path)
         self.assets["ponte"] = self.load_image("ponte.png", assets_path)

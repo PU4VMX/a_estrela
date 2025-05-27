@@ -30,14 +30,17 @@ class TuxGame:
 
         # ⚠️ Configure a tela primeiro
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        pygame.display.set_caption("Tux Pathfinder - A* Algorithm")
-
+        pygame.display.set_caption("A* Menor Caminho - Tux")
+        pygame.display.set_icon(pygame.image.load("assets/tux.png"))
+        pygame.mixer.music.load("assets/cave_old.ogg")
+    
         # ✅ Só depois carregue os assets
         self.asset_loader = AssetLoader()
 
         # Configuração da janela
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        pygame.display.set_caption("Tux Pathfinder - A* Algorithm")
+
+        pygame.display.set_caption("A* Menor Caminho - Tux")
 
         # Fonte para UI
         self.font = pygame.font.SysFont("Arial", 16)
@@ -394,7 +397,9 @@ class TuxGame:
         cell_value = self.grid[row][col]
 
         if cell_value == "B":
-            self.screen.blit(self.asset_loader.assets["barreira"], (screen_x, screen_y))
+            #animação de barreira
+            barreira_sprite = self.asset_loader.assets["barreira"][self.animation_frame]
+            self.screen.blit(barreira_sprite, (screen_x, screen_y))
         elif cell_value == "A":
             self.screen.blit(self.asset_loader.assets["ponte"], (screen_x, screen_y))
         elif cell_value == "F":
